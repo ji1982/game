@@ -196,6 +196,12 @@ class Game {
                     this.unequipItem(slotDiv.dataset.slot);
                 }
             }
+
+            // Sell Button Click
+            if (e.target.classList.contains('sell-btn')) {
+                const index = parseInt(e.target.dataset.index);
+                this.sellItem(index);
+            }
         });
 
         // Shop Equipment Purchase (Event Delegation)
@@ -208,15 +214,17 @@ class Game {
     }
 
     updateStageAvailability() {
-        const playerLevel = this.playerPokemon.level || 1;
         const stages = document.querySelectorAll('.stage-card');
 
         stages.forEach((card, index) => {
-            const stageMinLevel = [1, 5, 9, 13, 17, 21][index];
-            if (playerLevel >= stageMinLevel) {
+            // 判断关卡是否已解锁
+            const isUnlocked = this.playerPokemon.unlockedStages.includes(index);
+            if (isUnlocked) {
                 card.classList.remove('locked');
+                card.style.pointerEvents = 'auto';
             } else {
                 card.classList.add('locked');
+                card.style.pointerEvents = 'none';
             }
         });
     }
@@ -236,6 +244,25 @@ class Game {
                     if (this.savedPokemon.attrPoints === undefined) this.savedPokemon.attrPoints = 0;
                     if (!this.savedPokemon.inventory) this.savedPokemon.inventory = [];
                     if (!this.savedPokemon.equipment) this.savedPokemon.equipment = { weapon: null, armor: null, accessory: null };
+                    // 确保关卡进度和已解锁关卡数据存在
+                    if (!this.savedPokemon.stageProgress) {
+                        this.savedPokemon.stageProgress = {
+                            0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0
+                        };
+                    }
+                    if (!this.savedPokemon.unlockedStages) {
+                        // 对于旧存档，根据玩家等级解锁相应关卡
+                        const playerLevel = this.savedPokemon.level;
+                        const unlockedStages = [0]; // 至少解锁第1关
+                        
+                        if (playerLevel >= 5) unlockedStages.push(1);
+                        if (playerLevel >= 9) unlockedStages.push(2);
+                        if (playerLevel >= 13) unlockedStages.push(3);
+                        if (playerLevel >= 17) unlockedStages.push(4);
+                        if (playerLevel >= 21) unlockedStages.push(5);
+                        
+                        this.savedPokemon.unlockedStages = unlockedStages;
+                    }
 
                     // We need to set playerPokemon here to display camp correct
                     this.playerPokemon = this.savedPokemon; // Temp load
@@ -429,8 +456,18 @@ class Game {
                     'set': 10
                 };
 
-                const totalStats = (equipment.stats.atk || 0) + (equipment.stats.def || 0) +
-                    (equipment.stats.spd || 0) + ((equipment.stats.hp || 0) / 10);
+                // 计算装备总属性值，处理属性为对象的情况（取平均值）
+                const getStatValue = (stat) => {
+                    if (typeof stat === 'object' && stat !== null) {
+                        return (stat.min + stat.max) / 2;
+                    }
+                    return stat || 0;
+                };
+                
+                const totalStats = getStatValue(equipment.stats.atk) + 
+                                  getStatValue(equipment.stats.def) +
+                                  getStatValue(equipment.stats.spd) + 
+                                  (getStatValue(equipment.stats.hp) / 10);
 
                 equipment.price = Math.floor(basePrice * rarityMultiplier[equipment.rarity] + totalStats * 5);
                 this.shopEquipment.push(equipment);
@@ -510,6 +547,51 @@ class Game {
             this.ui.updateGearUI(this.playerPokemon);
             this.saveGame();
         }
+    }
+
+    sellItem(inventoryIndex) {
+        // Get the item to sell
+        const item = this.playerPokemon.inventory[inventoryIndex];
+        if (!item) return;
+
+        // Calculate half price based on rarity and stats
+        let basePrice = 50;
+        const rarityMultiplier = {
+            'common': 1,
+            'uncommon': 2,
+            'rare': 4,
+            'epic': 8,
+            'legendary': 20,
+            'set': 10
+        };
+
+        // Get stat value helper function
+        const getStatValue = (stat) => {
+            if (typeof stat === 'object' && stat !== null) {
+                return (stat.min + stat.max) / 2;
+            }
+            return stat || 0;
+        };
+
+        // Calculate total stats
+        const totalStats = getStatValue(item.stats.atk) + 
+                          getStatValue(item.stats.def) +
+                          getStatValue(item.stats.spd) + 
+                          (getStatValue(item.stats.hp) / 10);
+
+        // Calculate full price, then halve it for sell price
+        const fullPrice = Math.floor(basePrice * rarityMultiplier[item.rarity] + totalStats * 5);
+        const sellPrice = Math.floor(fullPrice / 2);
+
+        // Add gold to player
+        this.playerPokemon.gold += sellPrice;
+        // Remove item from inventory
+        this.playerPokemon.inventory.splice(inventoryIndex, 1);
+
+        // Update UI
+        this.ui.updateGold(this.playerPokemon.gold);
+        this.ui.updateGearUI(this.playerPokemon);
+        this.saveGame();
     }
 
     generateLoot(level) {
@@ -611,7 +693,9 @@ class Game {
                 attrPoints: 0,
                 gold: 100,
                 inventory: [],
-                equipment: { weapon: null, armor: null, accessory: null }
+                equipment: { weapon: null, armor: null, accessory: null },
+                stageProgress: { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+                unlockedStages: [0]
             };
 
             this.playerPokemon = {
@@ -655,9 +739,20 @@ class Game {
         this.opponentPokemon.name = stageData.opponentName;
         this.opponentPokemon.type = stageData.type;
 
-        // Calculate opponent level based on stage and player level
-        const baseLevel = stageData.minLevel + Math.floor(Math.random() * (stageData.maxLevel - stageData.minLevel + 1));
-        this.opponentPokemon.level = Math.max(baseLevel, this.playerPokemon.level - 2); // At least player level - 2
+        // Calculate opponent level based on stage progress
+        // 只能遇到已击败最高等级+1的怪物，或者当前关卡的最小等级（如果还没有击败任何怪物）
+        const currentStageProgress = this.playerPokemon.stageProgress[stageId] || 0;
+        let opponentLevel;
+        
+        if (currentStageProgress < stageData.maxLevel) {
+            // 生成下一个等级的怪物
+            opponentLevel = Math.max(currentStageProgress + 1, stageData.minLevel);
+        } else {
+            // 已经击败了当前关卡的最高等级怪物，只能继续挑战最高等级
+            opponentLevel = stageData.maxLevel;
+        }
+        
+        this.opponentPokemon.level = opponentLevel;
 
         // Scale Opponent Stats based on stage difficulty
         const difficultyMultiplier = 1 + (stageId * 0.2); // Each stage is 20% harder
@@ -920,12 +1015,50 @@ class Game {
 
             await this.gainXp(xpGain);
 
-            // LOOT DROP
-            const loot = this.generateLoot(this.opponentPokemon.level);
-            if (loot) {
-                this.playerPokemon.inventory.push(loot);
-                await this.ui.typeDialog(`获得装备: [${loot.name}]!`);
-                await this.ui.typeDialog(`(请在营地背包中查看)`);
+            // LOOT DROP - 生成多个战利品
+            const lootItems = [];
+            const maxLoot = 3; // 最大战利品数量
+            
+            for (let i = 0; i < maxLoot; i++) {
+                const loot = this.generateLoot(this.opponentPokemon.level);
+                if (loot) {
+                    lootItems.push(loot);
+                    this.playerPokemon.inventory.push(loot);
+                }
+            }
+            
+            // 一起显示所有获得的战利品
+            if (lootItems.length > 0) {
+                let lootText = `获得装备: `;
+                for (let i = 0; i < lootItems.length; i++) {
+                    lootText += `[${lootItems[i].name}]`;
+                    if (i < lootItems.length - 1) {
+                        lootText += `, `;
+                    }
+                }
+                lootText += `!`;
+                
+                await this.ui.typeDialog(lootText);
+            }
+
+            // 更新关卡进度和解锁逻辑
+            const stageId = this.selectedStage || 0;
+            const stageData = this.getStageData(stageId);
+            const opponentLevel = this.opponentPokemon.level;
+            
+            // 更新当前关卡已击败的最高等级
+            if (opponentLevel > (this.playerPokemon.stageProgress[stageId] || 0)) {
+                this.playerPokemon.stageProgress[stageId] = opponentLevel;
+                
+                // 检查是否击败了当前关卡的最高等级怪物
+                if (opponentLevel >= stageData.maxLevel) {
+                    // 解锁下一关
+                    const nextStageId = stageId + 1;
+                    if (nextStageId <= 5 && !this.playerPokemon.unlockedStages.includes(nextStageId)) {
+                        this.playerPokemon.unlockedStages.push(nextStageId);
+                        await this.ui.typeDialog(`恭喜! 已解锁第 ${nextStageId + 1} 关!`);
+                    }
+                }
             }
 
             // 战斗结束后恢复HP到满值

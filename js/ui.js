@@ -71,8 +71,13 @@ class UI {
 
     updateXP(current, max) {
         const bar = document.getElementById('player-xp-bar');
+        const currentEl = document.getElementById('player-xp-current');
+        const maxEl = document.getElementById('player-xp-max');
+        
         const percentage = Math.min(100, Math.max(0, (current / max) * 100));
         if (bar) bar.style.width = `${percentage}%`;
+        if (currentEl) currentEl.textContent = current;
+        if (maxEl) maxEl.textContent = max;
     }
 
     // Typewriter effect for dialog
@@ -283,16 +288,19 @@ class UI {
         document.getElementById('inventory-count').textContent = inventory.length;
 
         inventory.forEach((item, index) => {
-            const div = document.createElement('div');
-            div.className = `item-slot rarity-${item.rarity}`;
-            div.dataset.index = index; // Store index for easy access
-            div.innerHTML = `
-                <div class="item-name">${item.name} <span style="float:right; font-size:0.7em; opacity:0.8;">${item.type}</span></div>
-                <div class="item-stats">${this.formatItemStats(item)}</div>
-                <div style="margin-top:5px; font-size:0.8em; color:yellow;">点击装备 / 丢弃</div>
-            `;
-            listContainer.appendChild(div);
-        });
+                const div = document.createElement('div');
+                div.className = `item-slot rarity-${item.rarity}`;
+                div.dataset.index = index; // Store index for easy access
+                div.innerHTML = `
+                    <div class="item-name">${item.name} <span style="float:right; font-size:0.7em; opacity:0.8;">${item.type}</span></div>
+                    <div class="item-stats">${this.formatItemStats(item)}</div>
+                    <div style="margin-top:5px; display:flex; justify-content:space-between;">
+                        <div style="font-size:0.8em; color:yellow;">点击装备</div>
+                        <button class="sell-btn" data-index="${index}" style="font-size:0.8em; padding:2px 8px; background-color: #d9534f; color: white; border: none; border-radius: 4px; cursor: pointer;">出售</button>
+                    </div>
+                `;
+                listContainer.appendChild(div);
+            });
 
         // 3. Update Total Gear Stats Preview - Support stat ranges
         let totalAtkMin = 0, totalAtkMax = 0;
