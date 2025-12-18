@@ -253,6 +253,9 @@ class UI {
     }
 
     updateGearUI(playerData) {
+        // Update gold display
+        document.getElementById('gear-gold').textContent = playerData.gold;
+        
         const inventory = playerData.inventory || [];
         const equipment = playerData.equipment || { weapon: null, armor: null, accessory: null };
 
@@ -288,15 +291,47 @@ class UI {
         document.getElementById('inventory-count').textContent = inventory.length;
 
         inventory.forEach((item, index) => {
+                // Calculate item sell price
+                const basePrice = 50;
+                const rarityMultiplier = {
+                    'common': 1,
+                    'uncommon': 2,
+                    'rare': 4,
+                    'epic': 8,
+                    'legendary': 20,
+                    'set': 10
+                };
+                
+                // Get stat value helper function
+                const getStatValue = (stat) => {
+                    if (typeof stat === 'object' && stat !== null) {
+                        return (stat.min + stat.max) / 2;
+                    }
+                    return stat || 0;
+                };
+                
+                // Calculate total stats
+                const totalStats = getStatValue(item.stats.atk) + 
+                                  getStatValue(item.stats.def) +
+                                  getStatValue(item.stats.spd) + 
+                                  (getStatValue(item.stats.hp) / 10);
+                
+                // Calculate full price and then sell price (half of full price)
+                const fullPrice = Math.floor(basePrice * rarityMultiplier[item.rarity] + totalStats * 5);
+                const sellPrice = Math.floor(fullPrice / 2);
+                
                 const div = document.createElement('div');
                 div.className = `item-slot rarity-${item.rarity}`;
                 div.dataset.index = index; // Store index for easy access
                 div.innerHTML = `
                     <div class="item-name">${item.name} <span style="float:right; font-size:0.7em; opacity:0.8;">${item.type}</span></div>
                     <div class="item-stats">${this.formatItemStats(item)}</div>
-                    <div style="margin-top:5px; display:flex; justify-content:space-between;">
+                    <div style="margin-top:5px; display:flex; justify-content:space-between; align-items:center;">
                         <div style="font-size:0.8em; color:yellow;">点击装备</div>
-                        <button class="sell-btn" data-index="${index}" style="font-size:0.8em; padding:2px 8px; background-color: #d9534f; color: white; border: none; border-radius: 4px; cursor: pointer;">出售</button>
+                        <div style="display:flex; align-items:center; gap:5px;">
+                            <span style="font-size:0.8em; color:green;">售价: ${sellPrice} G</span>
+                            <button class="sell-btn" data-index="${index}" style="font-size:0.8em; padding:2px 8px; background-color: #d9534f; color: white; border: none; border-radius: 4px; cursor: pointer;">出售</button>
+                        </div>
                     </div>
                 `;
                 listContainer.appendChild(div);

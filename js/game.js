@@ -10,6 +10,7 @@ class Game {
         this.opponentPokemon = null;
         this.isPlayerTurn = true;
         this.isBattleActive = false;
+        this.shopEquipment = []; // 初始化商店商品列表
 
         // Save Key
         this.SAVE_KEY = 'pokeduel_save_data_v1';
@@ -78,9 +79,16 @@ class Game {
         document.getElementById('camp-status-card').addEventListener('click', () => this.ui.showStatusScreen(this.playerPokemon));
         document.getElementById('camp-shop-card').addEventListener('click', () => {
             this.ui.showShopScreen(this.playerPokemon.gold);
-            this.refreshShopEquipment(); // Generate initial shop items
+            // 只有在商店商品列表为空时才生成初始商品
+            if (!this.shopEquipment || this.shopEquipment.length === 0) {
+                this.refreshShopEquipment(); // Generate initial shop items
+            }
         });
         document.getElementById('camp-gear-card').addEventListener('click', () => this.ui.showGearScreen(this.playerPokemon));
+        document.getElementById('camp-save-card').addEventListener('click', () => {
+            this.saveGame();
+            this.showNotification('游戏已保存！', 'success');
+        });
 
         document.getElementById('status-back-btn').addEventListener('click', () => this.ui.showCampScreen());
         document.getElementById('shop-back-btn').addEventListener('click', () => this.ui.showCampScreen());
@@ -846,9 +854,9 @@ class Game {
         const playerSpd = this.playerPokemon.stats ? this.playerPokemon.stats.spd : 10;
         const enemySpd = this.opponentPokemon.stats ? this.opponentPokemon.stats.spd : 10;
 
-        // Base 50% + 5% per speed difference. Min 10%, Max 100%
-        let chance = 50 + (playerSpd - enemySpd) * 5;
-        chance = Math.max(10, Math.min(100, chance));
+        // Base 70% + 5% per speed difference. Min 30%, Max 100%
+        let chance = 70 + (playerSpd - enemySpd) * 5;
+        chance = Math.max(30, Math.min(100, chance));
 
         await this.ui.typeDialog(`正在尝试逃跑... (成功率 ${chance}%)`);
 
