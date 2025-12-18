@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PokeDuel - Ultimate Battle</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/effects.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- 动态背景层 -->
+        <div class="dynamic-background">
+            <div class="orb orb-1"></div>
+            <div class="orb orb-2"></div>
+        </div>
+
+        <!-- 游戏主界面 -->
+        <main class="game-interface glass-panel">
+
+            <!-- 开始屏幕 -->
+            <section id="start-screen" class="screen f-center active">
+                <div class="title-container">
+                    <h1 class="game-title">POKÉ<span class="highlight">DUEL</span></h1>
+                    <p class="subtitle">HTML5 BATTLE ARENA</p>
+                </div>
+                <button id="start-btn" class="btn-primary">开始冒险</button>
+                <button id="start-settings-btn" class="btn-secondary">⚙️ 存档管理</button>
+            </section>
+
+            <!-- 营地/主菜单 (New) -->
+            <section id="camp-screen" class="screen f-center hidden">
+                <h2 class="section-title">营地</h2>
+                <div class="camp-menu">
+                    <!-- Battle Card -->
+                    <div id="camp-battle-card" class="menu-card">
+                        <img src="assets/icon_battle.png" alt="Battle" class="menu-icon">
+                        <span class="menu-label">寻找对手</span>
+                    </div>
+
+                    <!-- Gear Card -->
+                    <div id="camp-gear-card" class="menu-card">
+                        <img src="assets/icon_gear.png" alt="Gear" class="menu-icon">
+                        <span class="menu-label">装备背包</span>
+                    </div>
+
+                    <!-- Status Card -->
+                    <div id="camp-status-card" class="menu-card">
+                        <img src="assets/icon_status.png" alt="Status" class="menu-icon">
+                        <span class="menu-label">属性加点</span>
+                    </div>
+
+                    <!-- Shop Card -->
+                    <div id="camp-shop-card" class="menu-card">
+                        <img src="assets/icon_shop.png" alt="Shop" class="menu-icon">
+                        <span class="menu-label">商店</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 存档管理界面 (New) -->
+            <section id="settings-screen" class="screen f-center hidden">
+                <h2 class="section-title">存档管理</h2>
+                <div class="settings-panel glass-shards">
+                    <div class="save-info">
+                        <h3>当前存档信息</h3>
+                        <div class="info-row">
+                            <span>宝可梦:</span>
+                            <span id="save-pokemon-name">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span>等级:</span>
+                            <span id="save-level">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span>金币:</span>
+                            <span id="save-gold">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span>装备数量:</span>
+                            <span id="save-items">-</span>
+                        </div>
+                    </div>
+
+                    <div class="settings-actions">
+                        <button id="save-game-btn" class="action-btn save-btn">💾 保存游戏</button>
+                        <button id="new-game-btn" class="action-btn danger-btn">🔄 重新开始</button>
+                        <button id="export-save-btn" class="action-btn export-btn">📤 导出存档</button>
+                        <button id="import-save-btn" class="action-btn import-btn">📥 导入存档</button>
+                    </div>
+
+                    <input type="file" id="import-file-input" accept=".json" style="display: none;">
+                </div>
+                <button id="settings-back-btn" class="back-btn header-font"
+                    style="margin-top:20px; width:auto; padding: 10px 40px;">返回</button>
+            </section>
+
+            <!-- 关卡选择界面 (New) -->
+            <section id="stage-screen" class="screen f-center hidden">
+                <h2 class="section-title">选择关卡</h2>
+                <div class="stage-grid">
+                    <div class="stage-card" data-stage="0">
+                        <div class="stage-icon">🌾</div>
+                        <h3>光影原野</h3>
+                        <p class="stage-level">Lv.1-4</p>
+                        <p class="stage-desc">新手训练场</p>
+                    </div>
+                    <div class="stage-card" data-stage="1">
+                        <div class="stage-icon">🍄</div>
+                        <h3>蘑菇丛林</h3>
+                        <p class="stage-level">Lv.5-8</p>
+                        <p class="stage-desc">毒系宝可梦出没</p>
+                    </div>
+                    <div class="stage-card" data-stage="2">
+                        <div class="stage-icon">⛏️</div>
+                        <h3>深幽矿山</h3>
+                        <p class="stage-level">Lv.9-12</p>
+                        <p class="stage-desc">岩石与钢铁</p>
+                    </div>
+                    <div class="stage-card" data-stage="3">
+                        <div class="stage-icon">🔥</div>
+                        <h3>赤热岩坑</h3>
+                        <p class="stage-level">Lv.13-16</p>
+                        <p class="stage-desc">火焰地狱</p>
+                    </div>
+                    <div class="stage-card" data-stage="4">
+                        <div class="stage-icon">❄️</div>
+                        <h3>急冻冰窟</h3>
+                        <p class="stage-level">Lv.17-20</p>
+                        <p class="stage-desc">极寒之地</p>
+                    </div>
+                    <div class="stage-card" data-stage="5">
+                        <div class="stage-icon">🐉</div>
+                        <h3>恶龙峡谷</h3>
+                        <p class="stage-level">Lv.21-25</p>
+                        <p class="stage-desc">龙之试炼</p>
+                    </div>
+                </div>
+                <button id="stage-back-btn" class="back-btn header-font"
+                    style="margin-top:20px; width:auto; padding: 10px 40px;">返回</button>
+            </section>
+
+            <!-- 装备界面 (New) -->
+            <section id="gear-screen" class="screen f-center hidden">
+                <h2 class="section-title">装备与背包</h2>
+                <div class="gear-layout">
+                    <!-- 左侧：当前装备 -->
+                    <div class="gear-slots">
+                        <h3>已装备</h3>
+                        <div id="slot-weapon" class="item-slot empty" data-slot="weapon">
+                            <span class="slot-label">武器 (Weapon)</span>
+                            <span class="item-placeholder">无装备</span>
+                        </div>
+                        <div id="slot-armor" class="item-slot empty" data-slot="armor">
+                            <span class="slot-label">防具 (Armor)</span>
+                            <span class="item-placeholder">无装备</span>
+                        </div>
+                        <div id="slot-accessory" class="item-slot empty" data-slot="accessory">
+                            <span class="slot-label">饰品 (Accessory)</span>
+                            <span class="item-placeholder">无装备</span>
+                        </div>
+
+                        <div class="stats-preview glass-shards" style="padding: 15px; margin-top: auto;">
+                            <p>总属性加成:</p>
+                            <div class="stat-row" style="font-size: 0.9rem;">HP: <span id="gear-stat-hp"
+                                    class="highlight-text" style="font-size:1rem;">+0</span></div>
+                            <div class="stat-row" style="font-size: 0.9rem;">ATK: <span id="gear-stat-atk"
+                                    class="highlight-text" style="font-size:1rem;">+0</span></div>
+                            <div class="stat-row" style="font-size: 0.9rem;">DEF: <span id="gear-stat-def"
+                                    class="highlight-text" style="font-size:1rem;">+0</span></div>
+                            <div class="stat-row" style="font-size: 0.9rem;">SPD: <span id="gear-stat-spd"
+                                    class="highlight-text" style="font-size:1rem;">+0</span></div>
+                        </div>
+                    </div>
+
+                    <!-- 右侧：背包列表 -->
+                    <div class="inventory-slots glass-shards">
+                        <h3>背包 (<span id="inventory-count">0</span>)</h3>
+                        <div id="inventory-list-container">
+                            <!-- Items will be injected here -->
+                        </div>
+                    </div>
+                </div>
+                <button id="gear-back-btn" class="back-btn header-font"
+                    style="margin-top:20px; width:auto; padding: 10px 40px;">返回</button>
+            </section>
+
+            <!-- 属性加点界面 (New) -->
+            <section id="status-screen" class="screen f-center hidden">
+                <h2 class="section-title">宝可梦状态</h2>
+                <div class="glass-shards status-panel">
+                    <!-- 基本信息 -->
+                    <div class="stat-section">
+                        <h3 class="section-subtitle">基本信息</h3>
+                        <div class="stat-row">
+                            <span>等级:</span>
+                            <span id="stat-level" class="highlight-text">1</span>
+                        </div>
+                        <div class="stat-row">
+                            <span>名称:</span>
+                            <span id="stat-name">喷火龙</span>
+                        </div>
+                        <div class="stat-row">
+                            <span>类型:</span>
+                            <span id="stat-type" class="type-badge type-fire">火</span>
+                        </div>
+                        <div class="stat-row">
+                            <span>金币:</span>
+                            <span id="stat-gold" class="gold-text">100</span> G
+                        </div>
+                    </div>
+
+                    <!-- 经验值信息 -->
+                    <div class="stat-section">
+                        <h3 class="section-subtitle">经验值</h3>
+                        <div class="xp-section">
+                            <div class="xp-label">XP</div>
+                            <div class="xp-bar-bg" style="width: 100%; margin: 10px 0;">
+                                <div id="stat-xp-bar" class="xp-bar-fill" style="width: 0%;"></div>
+                            </div>
+                            <div class="xp-text"><span id="stat-xp-current">0</span>/<span id="stat-xp-max">100</span></div>
+                        </div>
+                    </div>
+
+                    <!-- 加点属性 -->
+                    <div class="stat-section">
+                        <h3 class="section-subtitle">属性加点</h3>
+                        <div class="stat-row points-available">
+                            <span>可用点数:</span>
+                            <span id="attr-points" class="highlight-text">0</span>
+                        </div>
+                        <div class="stat-row">
+                            <span>生命值 (HP):</span>
+                            <div class="stat-control">
+                                <button class="stat-minus-btn" data-stat="hp">-</button>
+                                <span id="stat-hp-base" class="highlight-text">200</span>
+                                <button class="stat-plus-btn" data-stat="hp">+</button>
+                            </div>
+                        </div>
+                        <div class="stat-row">
+                            <span>攻击力 (ATK):</span>
+                            <div class="stat-control">
+                                <button class="stat-minus-btn" data-stat="atk">-</button>
+                                <span id="stat-atk-val">10</span>
+                                <button class="stat-plus-btn" data-stat="atk">+</button>
+                            </div>
+                        </div>
+                        <div class="stat-row">
+                            <span>防御力 (DEF):</span>
+                            <div class="stat-control">
+                                <button class="stat-minus-btn" data-stat="def">-</button>
+                                <span id="stat-def-val">10</span>
+                                <button class="stat-plus-btn" data-stat="def">+</button>
+                            </div>
+                        </div>
+                        <div class="stat-row">
+                            <span>速度 (SPD):</span>
+                            <div class="stat-control">
+                                <button class="stat-minus-btn" data-stat="spd">-</button>
+                                <span id="stat-spd-val">10</span>
+                                <button class="stat-plus-btn" data-stat="spd">+</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 总属性 -->
+                    <div class="stat-section total-stats">
+                        <h3 class="section-subtitle">总属性</h3>
+                        <div class="stat-row total-stat">
+                            <span>总生命值:</span>
+                            <span id="stat-total-hp" class="highlight-text">200</span>
+                        </div>
+                        <div class="stat-row total-stat">
+                            <span>总攻击力:</span>
+                            <span id="stat-total-atk" class="highlight-text">10</span>
+                        </div>
+                        <div class="stat-row total-stat">
+                            <span>总防御力:</span>
+                            <span id="stat-total-def" class="highlight-text">10</span>
+                        </div>
+                        <div class="stat-row total-stat">
+                            <span>总速度:</span>
+                            <span id="stat-total-spd" class="highlight-text">10</span>
+                        </div>
+                    </div>
+                </div>
+                <button id="status-back-btn" class="back-btn header-font"
+                    style="margin-top:20px; width:auto; padding: 10px 40px;">返回</button>
+            </section>
+
+            <!-- 商店界面 (New) -->
+            <section id="shop-screen" class="screen f-center hidden">
+                <h2 class="section-title">道具商店</h2>
+                <p class="gold-display">持有金币: <span id="shop-gold" class="gold-text">0</span> G</p>
+
+                <div class="shop-tabs">
+                    <button id="tab-items" class="shop-tab active">消耗品</button>
+                    <button id="tab-equipment" class="shop-tab">装备</button>
+                </div>
+
+                <!-- Items Tab -->
+                <div id="shop-items-content" class="shop-content">
+                    <div class="shop-grid">
+                        <div class="shop-item glass-shards">
+                            <h4>回复药 (Potion)</h4>
+                            <p>恢复 50 HP</p>
+                            <button class="buy-btn" data-item="potion" data-price="50">50 G</button>
+                        </div>
+                        <div class="shop-item glass-shards">
+                            <h4>全满药 (Full Restore)</h4>
+                            <p>恢复所有 HP</p>
+                            <button class="buy-btn" data-item="full_restore" data-price="150">150 G</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Equipment Tab -->
+                <div id="shop-equipment-content" class="shop-content hidden">
+                    <button id="refresh-shop-btn" class="refresh-btn">🔄 刷新商品 (10 G)</button>
+                    <div id="shop-equipment-grid" class="shop-grid">
+                        <!-- Equipment items will be injected here -->
+                    </div>
+                </div>
+
+                <button id="shop-back-btn" class="back-btn header-font"
+                    style="margin-top:20px; width:auto; padding: 10px 40px;">返回</button>
+            </section>
+
+            <!-- 战斗屏幕 -->
+            <section id="battle-screen" class="screen hidden">
+                <!-- 顶部 HUD: 对手信息 -->
+                <div class="hud opponent-hud glass-shards">
+                    <div class="info-box">
+                        <div class="name-row">
+                            <h3 id="opponent-name">???</h3>
+                            <span id="opponent-level" class="level-text">Lv.5</span>
+                        </div>
+                        <div class="hp-container">
+                            <div class="hp-bar-bg">
+                                <div id="opponent-hp-bar" class="hp-bar-fill" style="width: 100%;"></div>
+                            </div>
+                            <div class="hp-text">
+                                <span id="opponent-hp-current">100</span> / <span id="opponent-hp-max">100</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 战斗区域: 宝可梦展示 -->
+                <div class="battle-arena">
+                    <div class="pokemon-stage opponent-stage">
+                        <img id="opponent-sprite" src="" alt="Opponent" class="sprite-img opponent-anim">
+                        <div class="platform"></div>
+                    </div>
+                </div>
+
+                <!-- 特效层 -->
+                <div id="effects-container" class="effects-container"></div>
+
+                <div class="battle-arena-bottom"> <!-- Alignment helper -->
+                    <div class="pokemon-stage player-stage">
+                        <img id="player-sprite" src="" alt="Player" class="sprite-img player-anim">
+                        <div class="platform"></div>
+                    </div>
+                </div>
+
+                <!-- 底部 HUD: 玩家信息 -->
+                <div class="hud player-hud glass-shards">
+                    <div class="info-box">
+                        <div class="name-row">
+                            <h3 id="player-name">喷火龙</h3>
+                            <span id="player-level" class="level-text">Lv.5</span>
+                        </div>
+                        <div class="hp-container">
+                            <div class="hp-bar-bg">
+                                <div id="player-hp-bar" class="hp-bar-fill" style="width: 100%;"></div>
+                            </div>
+                            <div class="hp-text">
+                                <span id="player-hp-current">200</span> / <span id="player-hp-max">200</span>
+                            </div>
+                        </div>
+                        <div class="xp-container">
+                            <div class="xp-label">XP</div>
+                            <div class="xp-bar-bg">
+                                <div id="player-xp-bar" class="xp-bar-fill" style="width: 0%;"></div>
+                            </div>
+                            <div class="xp-text"><span id="player-xp-current">0</span>/<span
+                                    id="player-xp-max">100</span></div>
+                        </div>
+                        <div class="gold-display">💰 <span id="player-gold" class="gold-text">100</span> G</div>
+                    </div>
+                </div>
+
+                <!-- 控制台与对话框 -->
+                <div class="controls-area glass-shards">
+                    <!-- 对话框 -->
+                    <div id="dialog-box" class="dialog-box">
+                        <p id="dialog-text">野生的 喷火龙 出现了!</p>
+                        <div class="typing-cursor"></div>
+                    </div>
+
+                    <!-- 操作菜单 -->
+                    <div id="action-menu" class="action-menu hidden">
+                        <button class="menu-btn fight-btn" data-action="fight">战斗 (FIGHT)</button>
+                        <button class="menu-btn bag-btn" data-action="bag">背包 (BAG)</button>
+                        <button class="menu-btn pokemon-btn" data-action="pokemon">精灵 (PKMN)</button>
+                        <button class="menu-btn run-btn" data-action="run">逃跑 (RUN)</button>
+                    </div>
+
+                    <!-- 招式选择菜单 -->
+                    <div id="move-menu" class="move-menu hidden">
+                        <button class="move-btn type-fire" data-move="0">喷射火焰</button>
+                        <button class="move-btn type-normal" data-move="1">撞击</button>
+                        <button class="move-btn type-flying" data-move="2">空气斩</button>
+                        <button class="move-btn type-dragon" data-move="3">龙之舞</button>
+                        <button id="move-back-btn" class="back-btn header-font">返回</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Confirmation Modal -->
+        <div id="confirm-modal" class="modal-overlay">
+            <div class="modal-content">
+                <h3 id="modal-title">确认操作</h3>
+                <p id="modal-message">确定要执行此操作吗？</p>
+                <div class="modal-buttons">
+                    <button id="modal-confirm" class="modal-btn modal-btn-confirm">确定</button>
+                    <button id="modal-cancel" class="modal-btn modal-btn-cancel">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 脚本引用 (按顺序加载以确保依赖关系正确) -->
+    <script src="js/data.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/game.js"></script>
+</body>
+
+</html>
