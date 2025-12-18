@@ -605,7 +605,7 @@ class Game {
     generateLoot(level) {
         const roll = Math.random();
         // Drop Rates: 100% chance for some loot for demo purposes? Let's say 50%
-        if (roll > 0.5) return null;
+        if (roll > 0.3) return null;
 
         // Check Rarity
         let rarity = 'common';
@@ -1025,7 +1025,7 @@ class Game {
 
             // LOOT DROP - 生成多个战利品
             const lootItems = [];
-            const maxLoot = 3; // 最大战利品数量
+            const maxLoot = 1; // 最大战利品数量
             
             for (let i = 0; i < maxLoot; i++) {
                 const loot = this.generateLoot(this.opponentPokemon.level);
